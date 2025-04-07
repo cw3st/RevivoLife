@@ -4,7 +4,7 @@
 **Date**: April 2025  
 **Author**: cecdev  
 **Reference**: [Software Requirements Specification (SRS)]  
-**Methodology**: Agile ( Sprint 1 ) 
+**Methodology**: Agile ( Sprint 1 )
 **Tech Stack**: MongoDB, Node.js, Express.js, Next.js, TypeScript, React
 
 ---
