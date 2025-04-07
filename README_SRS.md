@@ -3,7 +3,7 @@
 ## Project: RevivoLife Web Application  
 **Author:** cecdev  
 **Date:** April 2025  
-**Development Methodology:** Agile  
+**Development Methodology:** Agile ( Sprint 1 )  
 **Tech Stack:** MongoDB, Node.js, Express.js, Next.js, TypeScript, React  
 
 ---
