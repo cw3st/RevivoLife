@@ -1,0 +1,7 @@
+@media (max-width: 760px) {
+  .background {
+    background-image: url(../Assets/background.jpg);
+    height: 100vh;
+    padding-top: 200px;
+  }
+}
