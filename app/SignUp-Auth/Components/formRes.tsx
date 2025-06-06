@@ -8,7 +8,7 @@ import appleLogo from "@/app/SignUp-Auth/Assets/Group 2.jpg";
 import googleLogo from "@/app/SignUp-Auth/Assets/Group 3.jpg";
 import outlookLogo from "@/app/SignUp-Auth/Assets/Group 6.jpg";
 
-export default function Form() {
+export default function FormRes() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -85,7 +85,7 @@ export default function Form() {
           />
           <button
             type="button"
-            className="!rounded-button absolute right-3 top-1/2 -translate-y-1/2 pb-5"
+            className="!rounded-button absolute  right-3 top-1/2 -translate-y-1/2 pb-5"
             onClick={() => setShowPassword(!showPassword)}
           >
             {showPassword ? (
@@ -101,8 +101,8 @@ export default function Form() {
             name="confirmPassword"
             type={showConfirmPassword ? "text" : "password"}
             placeholder="Confirm Password"
-            value={formData.confirmPassword}
             onChange={handleInputChange}
+            value={formData.confirmPassword}
             required
             className="caret-[#0c4125] focus:placeholder-transparent transition-colors duration-300 w-full p-2 mb-5 bg-white rounded-lg border border-[#07da58f3] placeholder:text-[#55d385] focus:outline-none text-[#0c4125]"
           />

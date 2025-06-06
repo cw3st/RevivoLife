@@ -1,9 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import Form from "@/app/SignUp-Auth/Components/form";
-import FormRes from "@/app/SignUp-Auth/Components/formRes"
-import style from "@/app/SignUp-Auth/Styles/style.module.css";
-import BackgroundRes from "@/app/SignUp-Auth/Assets/BackgroundRes.jpg"
+import Form from "@/app/SignIn-Auth/Components/form";
+import FormRes from "@/app/SignIn-Auth/Components/formRes"
+import style from "@/app/SignIn-Auth/Styles/style.module.css";
+import BackgroundRes from "@/app/SignIn-Auth/Assets/BackgroundRes.jpg"
 
 export default function SignUp() {
   return (
