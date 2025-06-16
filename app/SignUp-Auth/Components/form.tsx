@@ -1,12 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
+import { useCreateUserWithEmailAndPassword } from "react-firebase-hooks/auth";
+import { auth } from "@/app/Firebase/config";
 import { BiHide, BiShow } from "react-icons/bi";
 import Image from "next/image";
 import Line from "@/app/SignUp-Auth/Assets/Line3.jpg";
-import appleLogo from "@/app/SignUp-Auth/Assets/Group 2.jpg";
 import googleLogo from "@/app/SignUp-Auth/Assets/Group 3.jpg";
-import outlookLogo from "@/app/SignUp-Auth/Assets/Group 6.jpg";
+import yahooLogo from "@/app/SignUp-Auth/Assets/Group 7.jpg";
+import { useRouter } from "next/navigation";
+import {
+  GoogleAuthProvider,
+  OAuthProvider,
+  signInWithPopup,
+} from "firebase/auth";
 
 export default function Form() {
   const [formData, setFormData] = useState({
@@ -18,6 +25,11 @@ export default function Form() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const [createUserWithEmailAndPassword] =
+    useCreateUserWithEmailAndPassword(auth);
+
+  const router = useRouter();
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -39,6 +51,103 @@ export default function Form() {
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (validateForm()) {
+      try {
+        const res = await createUserWithEmailAndPassword(
+          formData.email,
+          formData.password
+        );
+        console.log({ res });
+        setFormData({
+          email: "",
+          password: "",
+          confirmPassword: "",
+          agreeToTerms: false,
+        });
+        setErrors({});
+      } catch (error: any) {
+        console.error("Firebase SignUp Error:", error.message);
+        if (error.code === "auth/email-already-in-use") {
+          setErrors((prev) => ({
+            ...prev,
+            email: "This email is already in use.",
+          }));
+        } else if (error.code === "auth/weak-password") {
+          setErrors((prev) => ({ ...prev, password: "Password is too weak." }));
+        } else {
+          setErrors((prev) => ({
+            ...prev,
+            general: "Failed to create user. Please try again.",
+          }));
+        }
+      }
+    }
+  };
+
+  // --- Google Sign-in Handler ---
+  const handleGoogleSignIn = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      // The signed-in user info.
+      const user = result.user;
+      console.log("Google Sign-in successful:", user);
+      // You can redirect the user or update UI here
+      router.push("/");
+    } catch (error: any) {
+      // Handle Errors here.
+      console.error("Google Sign-in Error:", error.code, error.message);
+      if (error.code === "auth/popup-closed-by-user") {
+        setErrors((prev) => ({
+          ...prev,
+          general: "Google sign-in cancelled.",
+        }));
+      } else if (error.code === "auth/cancelled-popup-request") {
+        setErrors((prev) => ({
+          ...prev,
+          general: "Popup already opened. Please try again.",
+        }));
+      } else {
+        setErrors((prev) => ({
+          ...prev,
+          general: `Google sign-in failed: ${error.message}`,
+        }));
+      }
+    }
+  };
+
+  // --- Yahoo Sign-in Handler ---
+  const handleYahooSignIn = async () => {
+    // For Yahoo, you use OAuthProvider and set the providerId
+    const provider = new OAuthProvider("yahoo.com");
+    try {
+      const result = await signInWithPopup(auth, provider);
+      // The signed-in user info.
+      const user = result.user;
+      console.log("Yahoo Sign-in successful:", user);
+      // You can redirect the user or update UI here
+      router.push("/");
+    } catch (error: any) {
+      // Handle Errors here.
+      console.error("Yahoo Sign-in Error:", error.code, error.message);
+      if (error.code === "auth/popup-closed-by-user") {
+        setErrors((prev) => ({ ...prev, general: "Yahoo sign-in cancelled." }));
+      } else if (error.code === "auth/cancelled-popup-request") {
+        setErrors((prev) => ({
+          ...prev,
+          general: "Popup already opened. Please try again.",
+        }));
+      } else {
+        setErrors((prev) => ({
+          ...prev,
+          general: `Yahoo sign-in failed: ${error.message}`,
+        }));
+      }
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -126,6 +235,7 @@ export default function Form() {
           <p className=" text-sm text-red-600">{errors.confirmPassword}</p>
         )}
         <button
+          onClick={handleSignUp}
           type="submit"
           className="w-full text-lg py-3 rounded-lg items-center justify-center bg-gradient-to-r from-[#0c4125] to-[#1d7841] flex shadow-2xl shadow-black"
         >
@@ -136,27 +246,22 @@ export default function Form() {
           <span className="text-[#55d385]">Or continue with</span>
           <Image src={Line} alt="Line" width={80} className="mt-3 mb-2.5" />
         </div>
-        <div className="flex justify-between mt-5">
-          <Image
-            src={appleLogo}
-            alt="Apple logo"
-            width={50}
-            height={50}
-            className="rounded-full"
-          />
+        <div className="flex justify-between mt-5 mx-25">
           <Image
             src={googleLogo}
             alt="Google logo"
             width={50}
             height={50}
             className="rounded-full"
+            onClick={handleGoogleSignIn}
           />
           <Image
-            src={outlookLogo}
+            src={yahooLogo}
             alt="Outlook logo"
             width={50}
             height={50}
             className="rounded-full"
+            onClick={handleYahooSignIn}
           />
         </div>
         <div className="flex items-start sm:items-center mt-5">

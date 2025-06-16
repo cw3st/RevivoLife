@@ -1,12 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
+import { useSignInWithEmailAndPassword } from "react-firebase-hooks/auth";
+import { auth } from "@/app/Firebase/config";
 import { BiHide, BiShow } from "react-icons/bi";
 import Image from "next/image";
 import Line from "@/app/SignIn-Auth/Assets/Line3.jpg";
-import appleLogo from "@/app/SignIn-Auth/Assets/Group 2.jpg";
 import googleLogo from "@/app/SignIn-Auth/Assets/Group 3.jpg";
-import outlookLogo from "@/app/SignIn-Auth/Assets/Group 6.jpg";
+import yahooLogo from "@/app/SignIn-Auth/Assets/Group 7.jpg";
+import { useRouter } from "next/navigation";
+import {
+  GoogleAuthProvider,
+  OAuthProvider,
+  signInWithPopup,
+} from "firebase/auth";
 
 export default function Form() {
   const [formData, setFormData] = useState({
@@ -15,6 +22,9 @@ export default function Form() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [signInWithEmailAndPassword] = useSignInWithEmailAndPassword(auth);
+
+  const router = useRouter();
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -32,10 +42,114 @@ export default function Form() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      console.log("Form submitted:", formData);
+      try {
+        const res = await signInWithEmailAndPassword(
+          formData.email,
+          formData.password
+        );
+        console.log({ res });
+        if (res?.user) {
+          setFormData({
+            email: "",
+            password: "",
+          });
+          setErrors({});
+          router.push("/");
+        } else {
+          setErrors((prev) => ({
+            ...prev,
+            general: "Invalid email or password.",
+          }));
+        }
+      } catch (error: any) {
+        console.error("Firebase SignUp Error:", error.message);
+        if (
+          error.code === "auth/invalid-email" ||
+          error.code === "auth/user-not-found" ||
+          error.code === "auth/wrong-password"
+        ) {
+          setErrors((prev) => ({
+            ...prev,
+            general: "Invalid email or password.",
+          }));
+        } else if (error.code === "auth/too-many-requests") {
+          setErrors((prev) => ({
+            ...prev,
+            general:
+              "Too many unsuccessful login attempts. Please try again later.",
+          }));
+        } else {
+          setErrors((prev) => ({
+            ...prev,
+            general: "An unexpected error occurred. Please try again.",
+          }));
+        }
+      }
+    }
+  };
+
+  // --- Google Sign-in Handler ---
+  const handleGoogleSignIn = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      // The signed-in user info.
+      const user = result.user;
+      console.log("Google Sign-in successful:", user);
+      // You can redirect the user or update UI here
+      router.push("/");
+    } catch (error: any) {
+      // Handle Errors here.
+      console.error("Google Sign-in Error:", error.code, error.message);
+      if (error.code === "auth/popup-closed-by-user") {
+        setErrors((prev) => ({
+          ...prev,
+          general: "Google sign-in cancelled.",
+        }));
+      } else if (error.code === "auth/cancelled-popup-request") {
+        setErrors((prev) => ({
+          ...prev,
+          general: "Popup already opened. Please try again.",
+        }));
+      } else {
+        setErrors((prev) => ({
+          ...prev,
+          general: `Google sign-in failed: ${error.message}`,
+        }));
+      }
+    }
+  };
+
+  // --- Yahoo Sign-in Handler ---
+  const handleYahooSignIn = async () => {
+    // For Yahoo, you use OAuthProvider and set the providerId
+    const provider = new OAuthProvider("yahoo.com");
+    try {
+      const result = await signInWithPopup(auth, provider);
+      // The signed-in user info.
+      const user = result.user;
+      console.log("Yahoo Sign-in successful:", user);
+      // You can redirect the user or update UI here
+      router.push("/");
+    } catch (error: any) {
+      // Handle Errors here.
+      console.error("Yahoo Sign-in Error:", error.code, error.message);
+      if (error.code === "auth/popup-closed-by-user") {
+        setErrors((prev) => ({ ...prev, general: "Yahoo sign-in cancelled." }));
+      } else if (error.code === "auth/cancelled-popup-request") {
+        setErrors((prev) => ({
+          ...prev,
+          general: "Popup already opened. Please try again.",
+        }));
+      } else {
+        setErrors((prev) => ({
+          ...prev,
+          general: `Yahoo sign-in failed: ${error.message}`,
+        }));
+      }
     }
   };
 
@@ -50,7 +164,7 @@ export default function Form() {
   return (
     <main className=" bg-[#f1fde8b9] mx-5 py-10 px-5 rounded-2xl shadow-2xl shadow-black">
       <h1 className="text-[#0c4125] text-2xl font-semibold mb-5">Sign In</h1>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSignIn}>
         <div>
           <input
             id="email"
@@ -101,27 +215,22 @@ export default function Form() {
           <span className="text-[#55d385]">Or continue with</span>
           <Image src={Line} alt="Line" width={80} className="mt-3 mb-2.5" />
         </div>
-        <div className="flex justify-between mt-5">
-          <Image
-            src={appleLogo}
-            alt="Apple logo"
-            width={50}
-            height={50}
-            className="rounded-full"
-          />
+        <div className="flex justify-between mt-5 mx-25">
           <Image
             src={googleLogo}
             alt="Google logo"
             width={50}
             height={50}
             className="rounded-full"
+            onClick={handleGoogleSignIn}
           />
           <Image
-            src={outlookLogo}
+            src={yahooLogo}
             alt="Outlook logo"
             width={50}
             height={50}
             className="rounded-full"
+            onClick={handleYahooSignIn}
           />
         </div>
       </form>
